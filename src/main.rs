@@ -22,8 +22,8 @@ async fn main() {
         .route("/character/:sheet_key", get(character_data));
 
     // run our app
-    let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
-    let port = env::var("PORT").unwrap_or("3000".to_string());
+    let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
+    let port = env::var("PORT").unwrap_or_else(|_| "3000".to_string());
 
     let addr = format!("{}:{}", host, port).parse::<SocketAddr>().unwrap();
     tracing::debug!("listening on {}", addr);
@@ -211,7 +211,7 @@ async fn character_data(
         .doit()
         .await
     {
-        result.1.value_ranges.unwrap().clone()
+        result.1.value_ranges.unwrap()
     } else {
         return (StatusCode::NOT_FOUND, Json(None));
     };
@@ -486,7 +486,7 @@ fn get_value_from_result_column_range(input: Option<&ValueRange>) -> Vec<String>
         .unwrap()
         .clone()
         .values
-        .unwrap_or(vec![vec!["-".to_string()]])
+        .unwrap_or_else(|| vec![vec!["-".to_string()]])
         .get(0..max_data_size)
         .unwrap()
         .concat()
@@ -521,7 +521,7 @@ fn get_skill_value(input: Option<&ValueRange>) -> u8 {
 fn get_skill_specialization(input: Option<&ValueRange>) -> Option<Vec<String>> {
     Some(
         get_value_from_result_range(input)
-            .split(",")
+            .split(',')
             .map(|x| x.trim().to_string())
             .filter_map(|x| match x != "-" {
                 true => Some(x),
@@ -541,10 +541,7 @@ fn get_disciplines(input: Option<&ValueRange>) -> Vec<Discipline> {
         .get(0..6)
         .unwrap()
         .iter()
-        .filter_map(|x| match x.get(0).unwrap() != "-" {
-            true => Some(x),
-            false => None,
-        })
+        .filter(|x| x.get(0).unwrap() != "-")
         .map(|x| -> Discipline {
             Discipline {
                 name: x.get(0).unwrap().clone(),
@@ -566,14 +563,8 @@ fn get_merits(input: Option<&ValueRange>) -> Vec<Merit> {
         .get(0..7)
         .unwrap()
         .iter()
-        .filter_map(|x| match x.get(0).unwrap() != "-" {
-            true => Some(x),
-            false => None,
-        })
-        .filter_map(|x| match !x.get(0).unwrap().starts_with("N") {
-            true => Some(x),
-            false => None,
-        })
+        .filter(|x| x.get(0).unwrap() != "-")
+        .filter(|x| !x.get(0).unwrap().starts_with('N'))
         .map(|x| -> Merit {
             let captured: Option<Captures> = re.captures(x.get(0).unwrap());
 
@@ -617,14 +608,8 @@ fn get_flaws(input: Option<&ValueRange>) -> Vec<Flaw> {
         .get(0..7)
         .unwrap()
         .iter()
-        .filter_map(|x| match x.get(0).unwrap() != "-" {
-            true => Some(x),
-            false => None,
-        })
-        .filter_map(|x| match x.get(0).unwrap().starts_with("N") {
-            true => Some(x),
-            false => None,
-        })
+        .filter(|x| x.get(0).unwrap() != "-")
+        .filter(|x| x.get(0).unwrap().starts_with('N'))
         .map(|x| -> Flaw {
             let captured: Option<Captures> = re.captures(x.get(0).unwrap());
 
@@ -666,10 +651,7 @@ fn get_backgrounds(input: Option<&ValueRange>) -> Vec<Background> {
         .get(0..9)
         .unwrap()
         .iter()
-        .filter_map(|x| match x.get(0).unwrap().trim() != "" {
-            true => Some(x),
-            false => None,
-        })
+        .filter(|x| x.get(0).unwrap().trim() != "")
         .map(|x| -> Background {
             Background {
                 name: x.get(0).unwrap().clone(),
