@@ -3,12 +3,12 @@ extern crate hyper;
 extern crate hyper_rustls;
 extern crate yup_oauth2 as oauth2;
 
-use axum::{extract::Query, http::StatusCode, routing::get, Json, Router};
+use axum::{extract::Path, http::StatusCode, routing::get, Json, Router};
 use either::Either::{self, Left, Right};
 use regex::{Captures, Regex};
-use serde::{de, Deserialize, Deserializer, Serialize};
+use serde::Serialize;
 use sheets4::{api::ValueRange, Sheets};
-use std::{fmt, net::SocketAddr, str::FromStr};
+use std::{env, net::SocketAddr};
 
 #[tokio::main]
 async fn main() {
@@ -19,10 +19,13 @@ async fn main() {
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/", get(root))
-        .route("/character", get(character_data));
+        .route("/character/:sheet_key", get(character_data));
 
     // run our app
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let host = env::var("HOST").unwrap_or("127.0.0.1".to_string());
+    let port = env::var("PORT").unwrap_or("3000".to_string());
+
+    let addr = format!("{}:{}", host, port).parse::<SocketAddr>().unwrap();
     tracing::debug!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
@@ -37,19 +40,27 @@ async fn root() -> &'static str {
 
 /// loading the character data from the passed in sheet
 async fn character_data(
-    Query(params): Query<Params>,
+    Path(sheet_key): Path<String>,
 ) -> (StatusCode, Json<Option<PlayerCharacter>>) {
-    // setting up connection to Google Spreadsheets
-    let key = match &params.sheet_key {
-        Some(result) => result,
-        None => return (StatusCode::BAD_REQUEST, Json(None)),
-    };
+    tracing::debug!("Sheet Key: {:?}", sheet_key);
 
-    let secret = if let Ok(credentials) = oauth2::read_service_account_key("credentials.json").await
-    {
+    // setting up connection to Google Spreadsheets
+    let service_account_info = env::var("SERVICE_ACCOUNT_INFORMATION").unwrap_or_default();
+
+    let secret = if let Ok(credentials) = oauth2::parse_service_account_key(&service_account_info) {
+        tracing::debug!("parsed credentials successfully from env variable");
         credentials
     } else {
-        return (StatusCode::INTERNAL_SERVER_ERROR, Json(None));
+        tracing::debug!(
+            "parsed credentials unsuccessfully from env variable, trying credentials.json now"
+        );
+        if let Ok(credentials) = oauth2::read_service_account_key("credentials.json").await {
+            tracing::debug!("parsed credentials successfully from credentials.json");
+            credentials
+        } else {
+            tracing::debug!("both parse attempts failed, giving up");
+            return (StatusCode::INTERNAL_SERVER_ERROR, Json(None));
+        }
     };
 
     let authenticator = oauth2::ServiceAccountAuthenticator::builder(secret)
@@ -72,7 +83,7 @@ async fn character_data(
     // loading the data
     let result_google_spreadsheet = if let Ok(result) = hub
         .spreadsheets()
-        .values_batch_get(key)
+        .values_batch_get(sheet_key.as_str())
         // Feld Charakter Name
         .add_ranges("D1")
         // Feld Spieler Name
@@ -791,25 +802,4 @@ struct Background {
     name: String,
     value: u8,
     description: String,
-}
-
-/// Params Struct
-#[derive(Debug, Deserialize)]
-struct Params {
-    #[serde(default, deserialize_with = "empty_string_as_none")]
-    sheet_key: Option<String>,
-}
-
-/// Serde deserialization decorator to map empty Strings to None,
-fn empty_string_as_none<'de, D, T>(de: D) -> Result<Option<T>, D::Error>
-where
-    D: Deserializer<'de>,
-    T: FromStr,
-    T::Err: fmt::Display,
-{
-    let opt = Option::<String>::deserialize(de)?;
-    match opt.as_deref() {
-        None | Some("") => Ok(None),
-        Some(s) => FromStr::from_str(s).map_err(de::Error::custom).map(Some),
-    }
 }
