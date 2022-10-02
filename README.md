@@ -41,13 +41,14 @@ Gateway to retrieve the character data from the google spreadsheets
 ```
 - start the container
 ```bash
-docker run -d -p 80:3000 -e HOST='0.0.0.0' -e PORT='3000' -e SERVICE_ACCOUNT_INFORMATION='<credentials string>' <docker-image-hash>
+docker run -d -p 80:3000 -e HOST='0.0.0.0' -e PORT='3000' -e DB_CONNECTION_STRING='redis://<host>:<port>' -e SERVICE_ACCOUNT_INFORMATION='<credentials string>' <docker-image-hash>
 ```
+
 ## Acknowledgements
  - [rust](https://www.rust-lang.org)
  - [Axum](https://github.com/tokio-rs/axum)
  - [tokio](https://tokio.rs)
- 
+ - [redis](https://redis.io) 
 
 ## Authors
 
