@@ -1,6 +1,9 @@
+mod api_key_client;
 mod character_db;
 
-use crate::character_db::player_character_client::PlayerCharacterClient;
+use crate::{
+    api_key_client::ApiKeyClient, character_db::player_character_client::PlayerCharacterClient,
+};
 use axum::{extract::Path, http::StatusCode, routing::get, Json, Router};
 use character_db::player_character::PlayerCharacter;
 use std::{env, net::SocketAddr};
@@ -35,9 +38,18 @@ async fn root() -> &'static str {
 
 /// loading the character data from the passed in sheet
 async fn character_data(
-    Path(sheet_key): Path<String>,
+    Path(api_key): Path<String>,
 ) -> (StatusCode, Json<Option<PlayerCharacter>>) {
-    tracing::debug!("Sheet Key: {:?}", sheet_key);
+    tracing::debug!("API Key: {:?}", api_key);
+
+    let db_connection_string =
+        env::var("DB_CONNECTION_STRING").unwrap_or_else(|_| "redis://127.0.0.1/".to_string());
+    let mut api_key_client = ApiKeyClient::new(db_connection_string);
+
+    let sheet_key = match api_key_client.map_key(&api_key) {
+        Ok(key) => key,
+        Err(err) => return (err, Json(None)),
+    };
 
     let service_account_info = env::var("SERVICE_ACCOUNT_INFORMATION").unwrap_or_default();
 
