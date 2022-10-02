@@ -4,9 +4,10 @@ Gateway to retrieve the character data from the google spreadsheets
 
 ## Features
 
+- maps an api key stored in redis to the actual google spreadsheet id
+- handles the authentication with Google via a service account
 - handles all the interaction with the character sheets in google drive
 - displays the character information as a json string
-- handles the authentication with Google via a service account
 - optional docker image for easier deployment
 - written in rust with axum and tokio amongst others
 
