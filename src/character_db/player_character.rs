@@ -1,6 +1,7 @@
 use super::{
-    attributes::Attributes, background::Background, flaw::Flaw, merit::Merit, morality::Morality,
-    powers::Powers, skills::Skills,
+    attributes::Attributes, background::Background, battle_information::BattleInformation,
+    experience_information::ExperienceInformation, flaw::Flaw, item::Item, merit::Merit,
+    morality::Morality, powers::Powers, ritual::Ritual, skills::Skills,
 };
 use either::Either;
 use serde::{Deserialize, Serialize};
@@ -24,4 +25,8 @@ pub struct PlayerCharacter {
     pub merits: Vec<Merit>,
     pub flaws: Vec<Flaw>,
     pub backgrounds: Vec<Background>,
+    pub experience_information: ExperienceInformation,
+    pub battle_information: BattleInformation,
+    pub rituals: Vec<Ritual>,
+    pub items: Vec<Item>,
 }
