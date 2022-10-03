@@ -12,6 +12,7 @@ pub struct PlayerCharacter {
     pub character_name: String,
     pub player_name: String,
     pub version_sheet: String,
+    pub valid: bool,
     pub archetype: String,
     pub generation: Either<u8, String>,
     pub clan: String,

@@ -158,8 +158,8 @@ impl PlayerCharacterClient {
         let flaws = self.get_flaws(merits_and_flaws);
         let backgrounds = self.get_backgrounds(result_google_spreadsheet.get(61));
         let experience_start_value = self.get_value_as_u8(result_google_spreadsheet.get(62));
-        let experience_spent_total = self.get_value_as_u8(result_google_spreadsheet.get(63));
-        let experience_remaining = self.get_value_as_u8(result_google_spreadsheet.get(64));
+        let experience_spent_total = self.get_value_as_u16(result_google_spreadsheet.get(63));
+        let experience_remaining = self.get_value_as_i16(result_google_spreadsheet.get(64));
         let experience_received_total = self.get_value_as_u8(result_google_spreadsheet.get(65));
         let initiative = self.get_value_as_u8(result_google_spreadsheet.get(66));
         let initiative_with_celerity = self.get_value_as_u8(result_google_spreadsheet.get(67));
@@ -183,12 +183,14 @@ impl PlayerCharacterClient {
         let offense_pools = self.get_attack_pools(result_google_spreadsheet.get(79));
         let rituals = self.get_rituals(result_google_spreadsheet.get(80));
         let items = self.get_items(result_google_spreadsheet.get(81));
+        let valid = !experience_spent_total.gt(&900_u16);
 
         // creating the result struct
         Ok(PlayerCharacter {
             character_name,
             player_name,
             version_sheet,
+            valid,
             archetype,
             generation,
             clan,
@@ -523,7 +525,7 @@ impl PlayerCharacterClient {
         )
     }
 
-    /// reads a numeric value (unsigned)
+    /// reads a numeric value as u8
     fn get_value_as_u8(&self, input: Option<&ValueRange>) -> u8 {
         if let Ok(n) = input
             .unwrap()
@@ -542,7 +544,7 @@ impl PlayerCharacterClient {
         }
     }
 
-    /// reads a numeric value (signed)
+    /// reads a numeric value as i8
     fn get_value_as_i8(&self, input: Option<&ValueRange>) -> i8 {
         if let Ok(n) = input
             .unwrap()
@@ -560,6 +562,45 @@ impl PlayerCharacterClient {
             0
         }
     }
+
+    /// reads a numeric value as u16
+    fn get_value_as_u16(&self, input: Option<&ValueRange>) -> u16 {
+        if let Ok(n) = input
+            .unwrap()
+            .clone()
+            .values
+            .unwrap()
+            .get(0)
+            .unwrap()
+            .get(0)
+            .unwrap()
+            .parse()
+        {
+            n
+        } else {
+            0
+        }
+    }
+
+    /// reads a numeric value as i16
+    fn get_value_as_i16(&self, input: Option<&ValueRange>) -> i16 {
+        if let Ok(n) = input
+            .unwrap()
+            .clone()
+            .values
+            .unwrap()
+            .get(0)
+            .unwrap()
+            .get(0)
+            .unwrap()
+            .parse()
+        {
+            n
+        } else {
+            0
+        }
+    }
+
     /// reads a health track information
     fn get_health_track(&self, input: Option<&ValueRange>) -> HealthTrack {
         let binding = input.unwrap().clone().values.unwrap();
