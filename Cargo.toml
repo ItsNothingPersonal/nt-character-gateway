@@ -15,6 +15,7 @@ openssl = { version = "0.10.35", features = ["vendored"] }
 redis = { version = "0.19.0", features = ["tokio-comp", "tokio-native-tls-comp"] }
 regex = "1.6.0"
 serde = { version = "1.0.145", features = ["derive"] }
+serde_json = "1.0.85"
 tokio = { version = "1.21.2", features = ["full"] }
 tracing = "0.1.36"
 tracing-subscriber = "0.3.15"

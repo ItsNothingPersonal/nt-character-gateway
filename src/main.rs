@@ -46,6 +46,14 @@ async fn character_data(
         env::var("DB_CONNECTION_STRING").unwrap_or_else(|_| "redis://127.0.0.1/".to_string());
     let mut api_key_client = ApiKeyClient::new(db_connection_string);
 
+    let cached_character = api_key_client.get_cached_data(&api_key);
+
+    if let Ok(player_character) = cached_character {
+        tracing::debug!("found cached data for api key {:?}", api_key);
+        return (StatusCode::OK, Json(Some(player_character)));
+    }
+
+    tracing::debug!("no cached data found, retrieving from google spreadsheets");
     let sheet_key = match api_key_client.map_key(&api_key) {
         Ok(key) => key,
         Err(err) => return (err, Json(None)),
@@ -62,6 +70,8 @@ async fn character_data(
         Ok(data) => data,
         Err(error_code) => return (error_code, Json(None)),
     };
+
+    api_key_client.write_player_character_to_cache(&api_key, &retrieved_character);
 
     // returning the result
     (StatusCode::OK, Json(Some(retrieved_character)))

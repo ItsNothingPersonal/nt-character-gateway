@@ -3,10 +3,10 @@ use super::{
     powers::Powers, skills::Skills,
 };
 use either::Either;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// the output to the character_data handler
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct PlayerCharacter {
     pub character_name: String,
     pub player_name: String,

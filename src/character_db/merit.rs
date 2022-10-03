@@ -1,7 +1,7 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Merit Struct
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Merit {
     pub name: String,
     pub value: i8,

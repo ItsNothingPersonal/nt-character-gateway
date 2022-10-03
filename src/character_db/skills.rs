@@ -1,8 +1,8 @@
 use super::skill::Skill;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Skills Struct
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Skills {
     pub academics: Skill,
     pub athletics: Skill,

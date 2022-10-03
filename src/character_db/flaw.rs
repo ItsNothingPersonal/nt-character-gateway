@@ -1,7 +1,7 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Flaw Struct
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Flaw {
     pub name: String,
     pub value: i8,
