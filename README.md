@@ -41,7 +41,7 @@ Gateway to retrieve the character data from the google spreadsheets
 ```
 - start the container
 ```bash
-docker run -d -p 80:3000 -e HOST='0.0.0.0' -e PORT='3000' -e DB_CONNECTION_STRING='redis://<host>:<port>' -e SERVICE_ACCOUNT_INFORMATION='<credentials string>' <docker-image-hash>
+docker run -d -p 80:3000 -e HOST='0.0.0.0' -e PORT='3000' -e RUST_LOG='debug' -e DB_CONNECTION_STRING='redis://<host>:<port>' -e CACHE_TTL='300' -e SERVICE_ACCOUNT_INFORMATION='<credentials string>' <docker-image-hash>
 ```
 
 ## Acknowledgements
