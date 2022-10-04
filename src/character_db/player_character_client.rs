@@ -102,10 +102,7 @@ impl PlayerCharacterClient {
             self.get_value_from_result_column_range(result_google_spreadsheet.get(12));
         let attribut_mental_foci =
             self.get_value_from_result_column_range(result_google_spreadsheet.get(13));
-        let academics_value: u8 = self
-            .get_value_from_result_range(result_google_spreadsheet.get(14))
-            .parse()
-            .unwrap();
+        let academics_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(14));
         let academics_foci = self.get_skill_specialization(result_google_spreadsheet.get(15));
         let subterfuge_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(16));
         let dodge_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(17));
@@ -774,7 +771,8 @@ impl PlayerCharacterClient {
             return Vec::new();
         }
 
-        let values = binding.get(0..10).unwrap();
+        let number_of_items = binding.len();
+        let values = binding.get(0..number_of_items).unwrap();
 
         for entry in values.iter() {
             let item_data = entry.clone();
