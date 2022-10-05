@@ -1,0 +1,409 @@
+[[sheet_field]]
+name = "CharacterName"
+position = 0
+range = "D1"
+    
+[[sheet_field]]
+name = "PlayerName"
+position = 1 
+range = "N1"
+	
+[[sheet_field]]
+name = "VersionSheet"
+position = 2
+range = "AA1"
+    
+[[sheet_field]]
+name = "Archetype"
+position = 3
+range = "G4"
+
+[[sheet_field]]
+name = "Generation"
+position = 4
+range = "AA4"
+
+[[sheet_field]]
+name = "Clan"
+position = 5
+range = "G5"
+
+[[sheet_field]]
+name = "BlutvorratBlutProRunde"
+position = 6
+range = "AA5"
+
+[[sheet_field]]
+name = "BlutvorratBlutpool"
+position = 7
+range = "AC5"
+
+[[sheet_field]]
+name = "AttributKörperlichWert"
+position = 8
+range = "H8"
+
+[[sheet_field]]
+name = "AttributSozialWert"
+position = 9
+range = "R8"
+
+[[sheet_field]]
+name = "AttributMentalWert"
+position = 10
+range = "AB8"
+
+[[sheet_field]]
+name = "AttributKörperlicheFoki"
+position = 11
+range = "D9:D11"
+
+[[sheet_field]]
+name = "AttributSozialeFoki"
+position = 12
+range = "N9:N11"
+
+[[sheet_field]]
+name = "AttributMentaleFoki"
+position = 13
+range = "X9:X11"
+
+[[sheet_field]]
+name = "SkillAkademischesWissen"
+position = 14
+range = "H13"
+
+[[sheet_field]]
+name = "SkillAkademischesWissenSpezialisierung"
+position = 15
+range = "A14"
+
+[[sheet_field]]
+name = "SkillAusfluechte"
+position = 16
+range = "H16"
+
+[[sheet_field]]
+name = "SkillAusweichen"
+position = 17
+range = "H17"
+
+[[sheet_field]]
+name = "SkillComputer"
+position = 18
+range = "H18"
+
+[[sheet_field]]
+name = "SkillEinschüchtern"
+position = 19
+range = "H19"
+
+[[sheet_field]]
+name = "SkillEmpathie"
+position = 20
+range = "H20"
+
+[[sheet_field]]
+name = "SkillFahren"
+position = 21
+range = "H21"
+
+[[sheet_field]]
+name = "SkillFührungsqualitäten"
+position = 22
+range = "H22"
+
+[[sheet_field]]
+name = "SkillHandgemenge"
+position = 23
+range = "H23"
+
+[[sheet_field]]
+name = "SkillHandwerkA"
+position = 24
+range = "H24"
+
+[[sheet_field]]
+name = "SkillHandwerkASpezialisierung"
+position = 25
+range = "A25"
+
+[[sheet_field]]
+name = "SkillHandwerkB"
+position = 26
+range = "R13"
+
+[[sheet_field]]
+name = "SkillHandwerkBSpezialisierung"
+position = 27
+range = "K14"
+
+[[sheet_field]]
+name = "SkillHeimlichkeit"
+position = 28
+range = "R15"
+
+[[sheet_field]]
+name = "SkillLinguistik"
+position = 29
+range = "R16"
+
+[[sheet_field]]
+name = "SkillLinguistikSpezialisierung"
+position = 30
+range = "K17"
+
+[[sheet_field]]
+name = "SkillMagiegespür"
+position = 31
+range = "R19"
+
+[[sheet_field]]
+name = "SkillMedizin"
+position = 32
+range = "R20"
+
+[[sheet_field]]
+name = "SkillNachforschungen"
+position = 33
+range = "R21"
+
+[[sheet_field]]
+name = "SkillNahkampf"
+position = 34
+range = "R22"
+
+[[sheet_field]]
+name = "SkillNaturwissenschaftenA"
+position = 35
+range = "R23"
+
+[[sheet_field]]
+name = "SkillNaturwissenschaftenASpezialisierung"
+position = 36
+range = "K24"
+
+[[sheet_field]]
+name = "SkillNaturwissenschaftenB"
+position = 37
+range = "R25"
+
+[[sheet_field]]
+name = "SkillNaturwissenschaftenBSpezialisierung"
+position = 38
+range = "K26"
+
+[[sheet_field]]
+name = "SkillOkkultismus"
+position = 39
+range = "AB13"
+
+[[sheet_field]]
+name = "SkillSchusswaffen"
+position = 40
+range = "AB14"
+
+[[sheet_field]]
+name = "SkillSicherheit"
+position = 41
+range = "AB15"
+
+[[sheet_field]]
+name = "SkillSportlichkeit"
+position = 42
+range = "AB16"
+
+[[sheet_field]]
+name = "SkillSzenekenntnis"
+position = 43
+range = "AB17"
+
+[[sheet_field]]
+name = "SkillTierkunde"
+position = 44
+range = "AB18"
+
+[[sheet_field]]
+name = "SkillÜberleben"
+position = 45
+range = "AB19"
+
+[[sheet_field]]
+name = "SkillVortragA"
+position = 46
+range = "AB20"
+
+[[sheet_field]]
+name = "SkillVortragASpezialisierung"
+position = 47
+range = "U21"
+
+[[sheet_field]]
+name = "SkillVortragB"
+position = 48
+range = "AB22"
+
+[[sheet_field]]
+name = "SkillVortragBSpezialisierung"
+position = 49
+range = "U23"
+
+[[sheet_field]]
+name = "SkillÜbernatürlichesWissen"
+position = 50
+range = "AB24"
+
+[[sheet_field]]
+name = "SkillÜbernatürlichesWissenSpezialisierung"
+position = 51
+range = "U25"
+
+[[sheet_field]]
+name = "InClanDisziplinen"
+position = 52
+range = "A29:H34"
+
+[[sheet_field]]
+name = "OutOfClanDisziplinen"
+position = 53
+range = "K29:S34"
+
+[[sheet_field]]
+name = "Techniken"
+position = 54
+range = "U29:U37"
+
+[[sheet_field]]
+name = "InClanAhnenkräfte"
+position = 55
+range = "A36:A37"
+
+[[sheet_field]]
+name = "OutOfClanAhnenkräfte"
+position = 56
+range = "K36:K37"
+
+[[sheet_field]]
+name = "MoralvorstellungName"
+position = 57
+range = "A41"
+
+[[sheet_field]]
+name = "MoralvorstellungWert"
+position = 58
+range = "H41"
+
+[[sheet_field]]
+name = "FraktionName"
+position = 59
+range = "E42"
+
+[[sheet_field]]
+name = "MeritsFlaws"
+position = 60
+range = "A44:H55"
+
+[[sheet_field]]
+name = "Backgrounds"
+position = 61
+range = "K41:T55"
+
+[[sheet_field]]
+name = "ErfahrungspunkteStartpunkte"
+position = 62
+range = "H58"
+
+[[sheet_field]]
+name = "ErfahrungspunkteGesamtAusgegeben"
+position = 63
+range = "R58"
+
+[[sheet_field]]
+name = "ErfahrungspunkteAktuellFrei"
+position = 64
+range = "AB58"
+
+[[sheet_field]]
+name = "ErfahrungspunkteGesamtErhalten"
+position = 65
+range = "H59"
+
+[[sheet_field]]
+name = "Initiative"
+position = 66
+range = "H62"
+
+[[sheet_field]]
+name = "InitiativeGeschwindigkeit"
+position = 67
+range = "H63"
+
+[[sheet_field]]
+name = "GesundheitHealthy"
+position = 68
+range = "S63:Z63"
+
+[[sheet_field]]
+name = "GesundheitInjured"
+position = 69
+range = "S64:Z64"
+
+[[sheet_field]]
+name = "GesundheitIncapacitated"
+position = 70
+range = "S65:Z65"
+
+[[sheet_field]]
+name = "VerteidigungKörperlichRegulär"
+position = 71
+range = "J69"
+
+[[sheet_field]]
+name = "VerteidigungKörperlichMitGeschwindigkeit"
+position = 72
+range = "M69"
+
+[[sheet_field]]
+name = "VerteidigungKörperlichRasereiModifier"
+position = 73
+range = "K70"
+
+[[sheet_field]]
+name = "VerteidigungKörperlichAmBodenGegnerNäherAls3Meter"
+position = 74
+range = "K71"
+
+[[sheet_field]]
+name = "VerteidigungKörperlichAmBodenGegnerMindestens3MeterWeg"
+position = 75
+range = "K72"
+
+[[sheet_field]]
+name = "VerteidigungKörperlichSpecial"
+position = 76
+range = "K73"
+
+[[sheet_field]]
+name = "VerteidigungSozial"
+position = 77
+range = "U68:AC68"
+
+[[sheet_field]]
+name = "VerteidigungMental"
+position = 78
+range = "U71:AC71"
+
+[[sheet_field]]
+name = "AngriffsPools"
+position = 79
+range = "A77:AA100"
+
+[[sheet_field]]
+name = "Rituale"
+position = 80
+range = "A104:J118"
+
+[[sheet_field]]
+name = "Items"
+position = 81
+range = "A122:Z131"

@@ -1,6 +1,8 @@
 extern crate google_sheets4 as sheets4;
 extern crate yup_oauth2 as oauth2;
 
+use crate::config::{config_client::ConfigClient, field_name::FieldName};
+
 use super::{
     attribute::Attribute, attributes::Attributes, background::Background,
     battle_base_information::BattleBaseInformation,
@@ -17,10 +19,12 @@ use hyper::{client::HttpConnector, StatusCode};
 use hyper_rustls::HttpsConnector;
 use regex::{Captures, Regex};
 use sheets4::{api::ValueRange, Sheets};
-use std::collections::HashMap;
+use std::{clone::Clone, cmp::PartialEq, collections::HashMap, str::FromStr};
 
 pub struct PlayerCharacterClient {
     hub: Sheets<HttpsConnector<HttpConnector>>,
+    sheet_config: ConfigClient,
+    data: Option<Vec<ValueRange>>,
 }
 
 impl PlayerCharacterClient {
@@ -62,124 +66,125 @@ impl PlayerCharacterClient {
             authenticator,
         );
 
-        Ok(PlayerCharacterClient { hub })
+        let sheet_config = ConfigClient::new();
+        Ok(PlayerCharacterClient {
+            hub,
+            sheet_config,
+            data: None,
+        })
     }
 
-    pub async fn parse_data(&self, sheet_id: String) -> Result<PlayerCharacter, StatusCode> {
-        let result_google_spreadsheet: Vec<ValueRange> = match self.load_data(sheet_id).await {
-            Ok(result) => result,
+    pub async fn parse_data(&mut self, sheet_id: String) -> Result<PlayerCharacter, StatusCode> {
+        self.data = match self.load_data(sheet_id).await {
+            Ok(result) => Some(result),
             Err(err) => return Err(err),
         };
 
-        let character_name = self.get_value_from_result_range(result_google_spreadsheet.get(0));
-        let player_name = self.get_value_from_result_range(result_google_spreadsheet.get(1));
-        let version_sheet = self.get_value_from_result_range(result_google_spreadsheet.get(2));
-        let archetype = self.get_value_from_result_range(result_google_spreadsheet.get(3));
-        let generation_raw = self.get_value_from_result_range(result_google_spreadsheet.get(4));
+        let character_name = self.get_value(FieldName::CharacterName);
+        let player_name = self.get_value(FieldName::PlayerName);
+        let version_sheet = self.get_value(FieldName::VersionSheet);
+        let archetype = self.get_value(FieldName::Archetype);
+        let generation_raw = self.get_value::<String>(FieldName::Generation);
         let generation: Either<u8, String> = if let Ok(parsed) = generation_raw.parse() {
             Left(parsed)
         } else {
             Right(generation_raw)
         };
-        let clan = self.get_value_from_result_range(result_google_spreadsheet.get(5));
-        let blood_per_turn: u8 = self
-            .get_value_from_result_range(result_google_spreadsheet.get(6))
-            .parse()
+        let clan = self.get_value(FieldName::Clan);
+        let blood_per_turn = self.get_value::<u8>(FieldName::BlutvorratBlutProRunde);
+        let blood_pool = self.get_value::<u8>(FieldName::BlutvorratBlutpool);
+        let attribut_physical_value = self.get_value::<u8>(FieldName::AttributKörperlichWert);
+        let attribut_social_value = self.get_value::<u8>(FieldName::AttributSozialWert);
+        let attribut_mental_value = self.get_value::<u8>(FieldName::AttributMentalWert);
+        let attribut_physical_foci = self.get_value_vec(FieldName::AttributKörperlicheFoki);
+        let attribut_social_foci = self.get_value_vec(FieldName::AttributSozialeFoki);
+        let attribut_mental_foci = self.get_value_vec(FieldName::AttributMentaleFoki);
+        let academics_value = self.get_value::<u8>(FieldName::SkillAkademischesWissen);
+        let academics_foci =
+            self.get_skill_specialization(FieldName::SkillAkademischesWissenSpezialisierung);
+        let subterfuge_value = self.get_value::<u8>(FieldName::SkillAusfluechte);
+        let dodge_value = self.get_value::<u8>(FieldName::SkillAusweichen);
+        let computer_value = self.get_value::<u8>(FieldName::SkillComputer);
+        let intimidation_value = self.get_value::<u8>(FieldName::SkillEinschüchtern);
+        let empathy_value = self.get_value::<u8>(FieldName::SkillEmpathie);
+        let drive_value = self.get_value::<u8>(FieldName::SkillFahren);
+        let leadership_value = self.get_value::<u8>(FieldName::SkillFührungsqualitäten);
+        let brawl_value = self.get_value::<u8>(FieldName::SkillHandgemenge);
+        let craft_a_value = self.get_value::<u8>(FieldName::SkillHandwerkA);
+        let craft_a_foci = self.get_skill_specialization(FieldName::SkillHandwerkASpezialisierung);
+        let craft_b_value = self.get_value::<u8>(FieldName::SkillHandwerkB);
+        let craft_b_foci = self.get_skill_specialization(FieldName::SkillHandwerkBSpezialisierung);
+        let stealth_value = self.get_value::<u8>(FieldName::SkillHeimlichkeit);
+        let linguistics_value = self.get_value::<u8>(FieldName::SkillLinguistik);
+        let linguistics_foci =
+            self.get_skill_specialization(FieldName::SkillLinguistikSpezialisierung);
+        let awareness_value = self.get_value::<u8>(FieldName::SkillMagiegespür);
+        let medicine_value = self.get_value::<u8>(FieldName::SkillMedizin);
+        let investigation_value = self.get_value::<u8>(FieldName::SkillNachforschungen);
+        let melee_value = self.get_value::<u8>(FieldName::SkillNahkampf);
+        let science_a_value = self.get_value::<u8>(FieldName::SkillNaturwissenschaftenA);
+        let science_a_foci =
+            self.get_skill_specialization(FieldName::SkillNaturwissenschaftenASpezialisierung);
+        let science_b_value = self.get_value::<u8>(FieldName::SkillNaturwissenschaftenB);
+        let science_b_foci =
+            self.get_skill_specialization(FieldName::SkillNaturwissenschaftenBSpezialisierung);
+        let occult_value = self.get_value::<u8>(FieldName::SkillOkkultismus);
+        let firearms_value = self.get_value::<u8>(FieldName::SkillSchusswaffen);
+        let security_value = self.get_value::<u8>(FieldName::SkillSicherheit);
+        let athletics_value = self.get_value::<u8>(FieldName::SkillSportlichkeit);
+        let streetwise_value = self.get_value::<u8>(FieldName::SkillSzenekenntnis);
+        let animal_ken_value = self.get_value::<u8>(FieldName::SkillTierkunde);
+        let survival_value = self.get_value::<u8>(FieldName::SkillÜberleben);
+        let performance_a_value = self.get_value::<u8>(FieldName::SkillVortragA);
+        let performance_a_foci =
+            self.get_skill_specialization(FieldName::SkillVortragASpezialisierung);
+        let performance_b_value = self.get_value(FieldName::SkillVortragB);
+        let performance_b_foci =
+            self.get_skill_specialization(FieldName::SkillVortragBSpezialisierung);
+        let lore_value = self.get_value::<u8>(FieldName::SkillÜbernatürlichesWissen);
+        let lore_foci =
+            self.get_skill_specialization(FieldName::SkillÜbernatürlichesWissenSpezialisierung);
+        let in_clan_disciplines = self.get_disciplines(FieldName::InClanDisziplinen);
+        let out_of_clan_disciplines = self.get_disciplines(FieldName::OutOfClanDisziplinen);
+        let techniques = self.get_value_vec(FieldName::Techniken);
+        let in_clan_elder_powers = self.get_value_vec(FieldName::InClanAhnenkräfte);
+        let out_of_clan_elder_powers = self.get_value_vec(FieldName::OutOfClanAhnenkräfte);
+        let morality_name = self.get_value(FieldName::MoralvorstellungName);
+        let morality_value = self.get_value::<u8>(FieldName::MoralvorstellungWert);
+        let faction_name = self.get_value(FieldName::FraktionName);
+        let merits_and_flaws = self
+            .extract_value_from_result(FieldName::MeritsFlaws)
             .unwrap();
-        let blood_pool: u8 = self
-            .get_value_from_result_range(result_google_spreadsheet.get(7))
-            .parse()
-            .unwrap();
-        let attribut_physical_value =
-            self.get_value_from_result_range(result_google_spreadsheet.get(8));
-        let attribut_social_value =
-            self.get_value_from_result_range(result_google_spreadsheet.get(9));
-        let attribut_mental_value =
-            self.get_value_from_result_range(result_google_spreadsheet.get(10));
-        let attribut_physical_foci =
-            self.get_value_from_result_column_range(result_google_spreadsheet.get(11));
-        let attribut_social_foci =
-            self.get_value_from_result_column_range(result_google_spreadsheet.get(12));
-        let attribut_mental_foci =
-            self.get_value_from_result_column_range(result_google_spreadsheet.get(13));
-        let academics_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(14));
-        let academics_foci = self.get_skill_specialization(result_google_spreadsheet.get(15));
-        let subterfuge_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(16));
-        let dodge_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(17));
-        let computer_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(18));
-        let intimidation_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(19));
-        let empathy_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(20));
-        let drive_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(21));
-        let leadership_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(22));
-        let brawl_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(23));
-        let craft_a_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(24));
-        let craft_a_foci = self.get_skill_specialization(result_google_spreadsheet.get(25));
-        let craft_b_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(26));
-        let craft_b_foci = self.get_skill_specialization(result_google_spreadsheet.get(27));
-        let stealth_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(28));
-        let linguistics_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(29));
-        let linguistics_foci = self.get_skill_specialization(result_google_spreadsheet.get(30));
-        let awareness_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(31));
-        let medicine_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(32));
-        let investigation_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(33));
-        let melee_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(34));
-        let science_a_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(35));
-        let science_a_foci = self.get_skill_specialization(result_google_spreadsheet.get(36));
-        let science_b_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(37));
-        let science_b_foci = self.get_skill_specialization(result_google_spreadsheet.get(38));
-        let occult_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(39));
-        let firearms_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(40));
-        let security_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(41));
-        let athletics_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(42));
-        let streetwise_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(43));
-        let animal_ken_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(44));
-        let survival_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(45));
-        let performance_a_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(46));
-        let performance_a_foci = self.get_skill_specialization(result_google_spreadsheet.get(47));
-        let performance_b_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(48));
-        let performance_b_foci = self.get_skill_specialization(result_google_spreadsheet.get(49));
-        let lore_value: u8 = self.get_value_as_u8(result_google_spreadsheet.get(50));
-        let lore_foci = self.get_skill_specialization(result_google_spreadsheet.get(51));
-        let in_clan_disciplines = self.get_disciplines(result_google_spreadsheet.get(52));
-        let out_of_clan_disciplines = self.get_disciplines(result_google_spreadsheet.get(53));
-        let techniques = self.get_value_from_result_column_range(result_google_spreadsheet.get(54));
-        let in_clan_elder_powers =
-            self.get_value_from_result_column_range(result_google_spreadsheet.get(55));
-        let out_of_clan_elder_powers =
-            self.get_value_from_result_column_range(result_google_spreadsheet.get(56));
-        let morality_name = self.get_value_from_result_range(result_google_spreadsheet.get(57));
-        let morality_value = self.get_value_from_result_range(result_google_spreadsheet.get(58));
-        let faction_name = self.get_value_from_result_range(result_google_spreadsheet.get(59));
-        let merits_and_flaws = result_google_spreadsheet.get(60);
-        let merits = self.get_merits(merits_and_flaws);
-        let flaws = self.get_flaws(merits_and_flaws);
-        let backgrounds = self.get_backgrounds(result_google_spreadsheet.get(61));
-        let experience_start_value = self.get_value_as_u8(result_google_spreadsheet.get(62));
-        let experience_spent_total = self.get_value_as_u16(result_google_spreadsheet.get(63));
-        let experience_remaining = self.get_value_as_i16(result_google_spreadsheet.get(64));
-        let experience_received_total = self.get_value_as_u8(result_google_spreadsheet.get(65));
-        let initiative = self.get_value_as_u8(result_google_spreadsheet.get(66));
-        let initiative_with_celerity = self.get_value_as_u8(result_google_spreadsheet.get(67));
-        let health_healthy_track = self.get_health_track(result_google_spreadsheet.get(68));
-        let health_injured_track = self.get_health_track(result_google_spreadsheet.get(69));
-        let health_incapacitated_track = self.get_health_track(result_google_spreadsheet.get(70));
-        let physical_defense_base = self.get_value_as_u8(result_google_spreadsheet.get(71));
+        let merits = self.extract_merits(&merits_and_flaws);
+        let flaws = self.get_flaws(&merits_and_flaws);
+        let backgrounds = self.get_backgrounds(FieldName::Backgrounds);
+        let experience_start_value = self.get_value::<u8>(FieldName::ErfahrungspunkteStartpunkte);
+        let experience_spent_total =
+            self.get_value::<u16>(FieldName::ErfahrungspunkteGesamtAusgegeben);
+        let experience_remaining = self.get_value::<i16>(FieldName::ErfahrungspunkteAktuellFrei);
+        let experience_received_total =
+            self.get_value::<u8>(FieldName::ErfahrungspunkteGesamtErhalten);
+        let initiative = self.get_value::<u8>(FieldName::Initiative);
+        let initiative_with_celerity = self.get_value::<u8>(FieldName::InitiativeGeschwindigkeit);
+        let health_healthy_track = self.get_health_track(FieldName::GesundheitHealthy);
+        let health_injured_track = self.get_health_track(FieldName::GesundheitInjured);
+        let health_incapacitated_track = self.get_health_track(FieldName::GesundheitIncapacitated);
+        let physical_defense_base = self.get_value::<u8>(FieldName::VerteidigungKörperlichRegulär);
         let physical_defense_with_celerity =
-            self.get_value_as_u8(result_google_spreadsheet.get(72));
-        let physical_defense_frenzy_modifier: i8 =
-            self.get_value_as_i8(result_google_spreadsheet.get(73));
-        let physical_defense_on_the_ground_closer_than_3_meters: i8 =
-            self.get_value_as_i8(result_google_spreadsheet.get(74));
+            self.get_value::<u8>(FieldName::VerteidigungKörperlichMitGeschwindigkeit);
+        let physical_defense_frenzy_modifier =
+            self.get_value::<i8>(FieldName::VerteidigungKörperlichRasereiModifier);
+        let physical_defense_on_the_ground_closer_than_3_meters =
+            self.get_value::<i8>(FieldName::VerteidigungKörperlichAmBodenGegnerNäherAls3Meter);
         let physical_defense_on_the_ground_further_than_3_meters =
-            self.get_value_as_u8(result_google_spreadsheet.get(75));
-        let physical_defense_special: i8 = self.get_value_as_i8(result_google_spreadsheet.get(76));
-        let social_defense_pool =
-            self.get_non_physical_defense_pool(result_google_spreadsheet.get(77));
-        let mental_defense_pool =
-            self.get_non_physical_defense_pool(result_google_spreadsheet.get(78));
-        let offense_pools = self.get_attack_pools(result_google_spreadsheet.get(79));
-        let rituals = self.get_rituals(result_google_spreadsheet.get(80));
-        let items = self.get_items(result_google_spreadsheet.get(81));
+            self.get_value::<u8>(FieldName::VerteidigungKörperlichAmBodenGegnerMindestens3MeterWeg);
+        let physical_defense_special =
+            self.get_value::<i8>(FieldName::VerteidigungKörperlichSpecial);
+        let social_defense_pool = self.get_non_physical_defense_pool(FieldName::VerteidigungSozial);
+        let mental_defense_pool = self.get_non_physical_defense_pool(FieldName::VerteidigungMental);
+        let offense_pools = self.get_attack_pools(FieldName::AngriffsPools);
+        let rituals = self.get_rituals(FieldName::Rituale);
+        let items = self.get_items(FieldName::Items);
         let valid = !experience_spent_total.gt(&900_u16);
 
         // creating the result struct
@@ -195,15 +200,15 @@ impl PlayerCharacterClient {
             blood_pool,
             attributes: Attributes {
                 physical: Attribute {
-                    value: attribut_physical_value.parse().unwrap(),
+                    value: attribut_physical_value,
                     foci: attribut_physical_foci,
                 },
                 social: Attribute {
-                    value: attribut_social_value.parse().unwrap(),
+                    value: attribut_social_value,
                     foci: attribut_social_foci,
                 },
                 mental: Attribute {
-                    value: attribut_mental_value.parse().unwrap(),
+                    value: attribut_mental_value,
                     foci: attribut_mental_foci,
                 },
             },
@@ -334,7 +339,7 @@ impl PlayerCharacterClient {
             },
             morality: Morality {
                 name: morality_name,
-                value: morality_value.parse().unwrap(),
+                value: morality_value,
             },
             faction: faction_name,
             merits,
@@ -378,11 +383,8 @@ impl PlayerCharacterClient {
     }
 
     /// reads the list of backgrounds
-    fn get_backgrounds(&self, input: Option<&ValueRange>) -> Vec<Background> {
-        input
-            .unwrap()
-            .clone()
-            .values
+    fn get_backgrounds(&self, field_name: FieldName) -> Vec<Background> {
+        self.extract_value_from_result(field_name)
             .unwrap()
             .get(0..9)
             .unwrap()
@@ -399,11 +401,8 @@ impl PlayerCharacterClient {
     }
 
     /// reads the list of disciplines
-    fn get_disciplines(&self, input: Option<&ValueRange>) -> Vec<Discipline> {
-        input
-            .unwrap()
-            .clone()
-            .values
+    fn get_disciplines(&self, field_name: FieldName) -> Vec<Discipline> {
+        self.extract_value_from_result(field_name)
             .unwrap()
             .get(0..6)
             .unwrap()
@@ -419,14 +418,10 @@ impl PlayerCharacterClient {
     }
 
     /// reads the flaws of the combined list
-    fn get_flaws(&self, input: Option<&ValueRange>) -> Vec<Flaw> {
+    fn get_flaws(&self, input: &[Vec<String>]) -> Vec<Flaw> {
         let re = Regex::new(r"^(N(?P<flaw_type>.*):|N )(?P<flaw_name>.+)$").unwrap();
 
         input
-            .unwrap()
-            .clone()
-            .values
-            .unwrap()
             .get(0..7)
             .unwrap()
             .iter()
@@ -464,14 +459,10 @@ impl PlayerCharacterClient {
     }
 
     /// reads the merits of the combined list
-    fn get_merits(&self, input: Option<&ValueRange>) -> Vec<Merit> {
+    fn extract_merits(&self, input: &[Vec<String>]) -> Vec<Merit> {
         let re = Regex::new(r"^(V(?P<merit_type>.*):|V )(?P<merit_name>.+)$").unwrap();
 
         input
-            .unwrap()
-            .clone()
-            .values
-            .unwrap()
             .get(0..7)
             .unwrap()
             .iter()
@@ -509,9 +500,9 @@ impl PlayerCharacterClient {
     }
 
     /// reads a skill specialization
-    fn get_skill_specialization(&self, input: Option<&ValueRange>) -> Option<Vec<String>> {
+    fn get_skill_specialization(&self, field_name: FieldName) -> Option<Vec<String>> {
         Some(
-            self.get_value_from_result_range(input)
+            self.get_value::<String>(field_name)
                 .split(',')
                 .map(|x| x.trim().to_string())
                 .filter_map(|x| match x != "-" {
@@ -522,88 +513,12 @@ impl PlayerCharacterClient {
         )
     }
 
-    /// reads a numeric value as u8
-    fn get_value_as_u8(&self, input: Option<&ValueRange>) -> u8 {
-        if let Ok(n) = input
-            .unwrap()
-            .clone()
-            .values
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .parse()
-        {
-            n
-        } else {
-            0
-        }
-    }
-
-    /// reads a numeric value as i8
-    fn get_value_as_i8(&self, input: Option<&ValueRange>) -> i8 {
-        if let Ok(n) = input
-            .unwrap()
-            .clone()
-            .values
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .parse()
-        {
-            n
-        } else {
-            0
-        }
-    }
-
-    /// reads a numeric value as u16
-    fn get_value_as_u16(&self, input: Option<&ValueRange>) -> u16 {
-        if let Ok(n) = input
-            .unwrap()
-            .clone()
-            .values
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .parse()
-        {
-            n
-        } else {
-            0
-        }
-    }
-
-    /// reads a numeric value as i16
-    fn get_value_as_i16(&self, input: Option<&ValueRange>) -> i16 {
-        if let Ok(n) = input
-            .unwrap()
-            .clone()
-            .values
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .parse()
-        {
-            n
-        } else {
-            0
-        }
-    }
-
     /// reads a health track information
-    fn get_health_track(&self, input: Option<&ValueRange>) -> HealthTrack {
-        let binding = input.unwrap().clone().values.unwrap();
+    fn get_health_track(&self, field_name: FieldName) -> HealthTrack {
+        let binding = self.extract_value_from_result(field_name).unwrap();
         let track = binding.get(0).unwrap().get(0..8).unwrap();
-        let base_value: u8 = track.get(5).unwrap().parse::<u8>().unwrap();
-        let with_boni: u8 = track.get(7).unwrap().parse().unwrap();
+        let base_value = track.get(5).unwrap().parse::<u8>().unwrap();
+        let with_boni = track.get(7).unwrap().parse::<u8>().unwrap();
 
         let mut lost: u8 = 0;
 
@@ -627,16 +542,14 @@ impl PlayerCharacterClient {
     }
 
     /// reads the non-physical defense pools (social/mental)
-    fn get_non_physical_defense_pool(&self, input: Option<&ValueRange>) -> HashMap<u8, u8> {
-        let values = input
-            .unwrap()
-            .clone()
-            .values
+    fn get_non_physical_defense_pool(&self, field_name: FieldName) -> HashMap<u8, u8> {
+        let mut result: HashMap<u8, u8> = HashMap::new();
+        let values = self
+            .extract_value_from_result(field_name)
             .unwrap()
             .get(0)
             .unwrap()
             .clone();
-        let mut result: HashMap<u8, u8> = HashMap::new();
         let first_value = values[0].parse::<u8>().unwrap();
         result.insert(0, first_value);
         for n in 2_u8..9_u8 {
@@ -647,9 +560,9 @@ impl PlayerCharacterClient {
     }
 
     /// reads the different attack pools
-    fn get_attack_pools(&self, input: Option<&ValueRange>) -> Vec<BattleOffenseInformation> {
+    fn get_attack_pools(&self, field_name: FieldName) -> Vec<BattleOffenseInformation> {
         let mut result: Vec<BattleOffenseInformation> = Vec::new();
-        let binding = input.unwrap().clone().values.unwrap();
+        let binding = self.extract_value_from_result(field_name).unwrap();
         let values = binding.get(0..24).unwrap();
 
         for entry in values.iter() {
@@ -707,9 +620,9 @@ impl PlayerCharacterClient {
     }
 
     /// reads the rituals section
-    fn get_rituals(&self, input: Option<&ValueRange>) -> Vec<Ritual> {
+    fn get_rituals(&self, field_name: FieldName) -> Vec<Ritual> {
         let mut result: Vec<Ritual> = Vec::new();
-        let binding = input.unwrap().clone().values.unwrap();
+        let binding = self.extract_value_from_result(field_name).unwrap();
         let values = binding.get(0..15).unwrap();
 
         for entry in values.iter() {
@@ -763,9 +676,11 @@ impl PlayerCharacterClient {
     }
 
     /// reads the rituals section
-    fn get_items(&self, input: Option<&ValueRange>) -> Vec<Item> {
+    fn get_items(&self, field_name: FieldName) -> Vec<Item> {
         let mut result: Vec<Item> = Vec::new();
-        let binding = input.unwrap().clone().values.unwrap_or_default();
+        let binding = self
+            .extract_value_from_result(field_name)
+            .unwrap_or_default();
 
         if binding.is_empty() {
             return Vec::new();
@@ -802,18 +717,15 @@ impl PlayerCharacterClient {
         result
     }
 
-    /// extracts an vec from the selected column range
-    fn get_value_from_result_column_range(&self, input: Option<&ValueRange>) -> Vec<String> {
-        let max_data_size: usize = match input.unwrap().clone().values {
-            Some(x) => x.len(),
+    /// extracts a vec
+    fn get_value_vec(&self, field_name: FieldName) -> Vec<String> {
+        let data = self.extract_value_from_result(field_name);
+        let max_data_size: usize = match data {
+            Some(ref x) => x.len(),
             None => 1,
         };
 
-        input
-            .unwrap()
-            .clone()
-            .values
-            .unwrap_or_else(|| vec![vec!["-".to_string()]])
+        data.unwrap_or_else(|| vec![vec!["-".to_string()]])
             .get(0..max_data_size)
             .unwrap()
             .concat()
@@ -825,195 +737,39 @@ impl PlayerCharacterClient {
             .collect()
     }
 
-    /// extracts the value from the selected value range
-    /// assumes that the selected range is one field
-    fn get_value_from_result_range(&self, input: Option<&ValueRange>) -> String {
-        input
+    /// reads a single cell
+    fn get_value<T>(&self, field_name: FieldName) -> T
+    where
+        T: FromStr + Default,
+        <T as FromStr>::Err: std::fmt::Debug,
+    {
+        let binding = self
+            .extract_value_from_result(field_name)
+            .unwrap_or_else(|| vec![vec!["-".to_string()]]);
+        let field = binding.get(0).unwrap().get(0).unwrap().clone();
+        field.parse::<T>().unwrap_or_default()
+    }
+
+    fn extract_value_from_result(&self, field_name: FieldName) -> Option<Vec<Vec<String>>> {
+        self.data
+            .as_ref()
+            .unwrap()
+            .get(self.sheet_config.get_field_config(field_name).position as usize)
             .unwrap()
             .clone()
             .values
-            .unwrap_or(vec![vec!["-".to_string()]] as Vec<Vec<String>>)
-            .get(0)
-            .unwrap()
-            .get(0)
-            .unwrap()
-            .clone()
     }
 
     async fn load_data(&self, sheet_key: String) -> Result<Vec<ValueRange>, StatusCode> {
-        // loading the data
-        let result = self
-            .hub
-            .spreadsheets()
-            .values_batch_get(sheet_key.as_str())
-            // Feld Charakter Name
-            .add_ranges("D1")
-            // Feld Spieler Name
-            .add_ranges("N1")
-            // Feld Version Sheet
-            .add_ranges("AA1")
-            // Feld Wesen
-            .add_ranges("G4")
-            // Feld Generation
-            .add_ranges("AA4")
-            // Feld Clan/Blutlinie
-            .add_ranges("G5")
-            // Feld Blutvorrat Subfeld Blut Pro Runde
-            .add_ranges("AA5")
-            // Feld Blutvorrat Subfeld Blutpool
-            .add_ranges("AC5")
-            // Feld Attribut Körperlich Wert
-            .add_ranges("H8")
-            // Feld Attribut Sozial Wert
-            .add_ranges("R8")
-            // Feld Geistig Wert
-            .add_ranges("AB8")
-            // Felder Körperliche Foki
-            .add_ranges("D9:D11")
-            // Felder Soziale Foki
-            .add_ranges("N9:N11")
-            // Felder Mentale Foki
-            .add_ranges("X9:X11")
-            // Feld Akademisches Wissen
-            .add_ranges("H13")
-            // Feld Akademisches Wissen Subfeld Spezialisierung
-            .add_ranges("A14")
-            // Feld Ausflüchte
-            .add_ranges("H16")
-            // Feld Ausweichen
-            .add_ranges("H17")
-            // Feld Computer
-            .add_ranges("H18")
-            // Feld Einschüchtern
-            .add_ranges("H19")
-            // Feld Empathie
-            .add_ranges("H20")
-            // Feld Fahren
-            .add_ranges("H21")
-            // Feld Führungsqualitäten
-            .add_ranges("H22")
-            // Feld Handgemenge
-            .add_ranges("H23")
-            // Feld Handwerk A
-            .add_ranges("H24")
-            // Feld Handwerk A Subfeld Spezialisierung
-            .add_ranges("A25")
-            // Feld Handwerk B
-            .add_ranges("R13")
-            // Feld Handwerk B Subfeld Spezialisierung
-            .add_ranges("K14")
-            // Feld Heimlichkeit
-            .add_ranges("R15")
-            // Feld Linguistik
-            .add_ranges("R16")
-            // Feld Linguistik Subfeld Spezialisierung
-            .add_ranges("K17")
-            // Feld Magiegespür
-            .add_ranges("R19")
-            // Feld Medizin
-            .add_ranges("R20")
-            // Feld Nachforschungen
-            .add_ranges("R21")
-            // Feld Nahkampf
-            .add_ranges("R22")
-            // Feld Naturwissenschaften A
-            .add_ranges("R23")
-            // Feld Naturwissenschaften A Subfeld Spezialisierung
-            .add_ranges("K24")
-            // Feld Naturwissenschaften B
-            .add_ranges("R25")
-            // Feld Naturwissenschaften B Subfeld Spezialisierung
-            .add_ranges("K26")
-            // Feld Okkultismus
-            .add_ranges("AB13")
-            // Feld Schusswaffen
-            .add_ranges("AB14")
-            // Feld Sicherheit
-            .add_ranges("AB15")
-            // Feld Sportlichkeit
-            .add_ranges("AB16")
-            // Feld Szenekenntnis
-            .add_ranges("AB17")
-            // Feld Tierkunde
-            .add_ranges("AB18")
-            // Feld Überleben
-            .add_ranges("AB19")
-            // Feld Vortrag A
-            .add_ranges("AB20")
-            // Feld Vortrag A Subfeld Spezialisierung
-            .add_ranges("U21")
-            // Feld Vortrag B
-            .add_ranges("AB22")
-            // Feld Vortrag B Subfeld Spezialisierung
-            .add_ranges("U23")
-            // Feld Übernatürliches Wissen
-            .add_ranges("AB24")
-            // Feld Übernatürliches Wissen Subfeld Spezialisierung
-            .add_ranges("U25")
-            // Felder In Clan Disziplinen
-            .add_ranges("A29:H34")
-            // Felder Out Of Clan Disziplinen"
-            .add_ranges("K29:S34")
-            // Felder Techniken
-            .add_ranges("U29:U37")
-            // Felder In Clan Ahnenkräfte
-            .add_ranges("A36:A37")
-            // Felder Out Of Clan Ahnenkräfte
-            .add_ranges("K36:K37")
-            // Feld Moralvorstellung Name
-            .add_ranges("A41")
-            // Feld Moralvorstellung Wert
-            .add_ranges("H41")
-            // Feld Fraktion Name
-            .add_ranges("E42")
-            // Felder Vorzüge/Schwächen
-            .add_ranges("A44:H55")
-            // Felder Backgrounds
-            .add_ranges("K41:T55")
-            // Feld Erfahrungspunkte > Startpunkte
-            .add_ranges("H58")
-            // Feld Erfahrungspunkte > Gesamt ausgegeben
-            .add_ranges("R58")
-            // Feld Erfahrungspunkte > Aktuell frei
-            .add_ranges("AB58")
-            // Feld Erfahrungspunkte > Gesamt erhalten
-            .add_ranges("H59")
-            // Feld Initiative
-            .add_ranges("H62")
-            // Feld Initiative (Geschwindigkeit)
-            .add_ranges("H63")
-            // Feld Gesundheit > Healthy
-            .add_ranges("S63:Z63")
-            // Feld Gesundheit > Injured
-            .add_ranges("S64:Z64")
-            // Feld Gesundheit > Incapacitated
-            .add_ranges("S65:Z65")
-            // Feld Verteidigung > Körperlich > regulär
-            .add_ranges("J69")
-            // Feld Verteidigung > Körperlich > +Geschw.
-            .add_ranges("M69")
-            // Feld Verteidigung > Körperlich > Raserei Modifier
-            .add_ranges("K70")
-            // Feld Verteidigung > Körperlich > Am Boden > Gegner näher als 3m
-            .add_ranges("K71")
-            // Feld Verteidigung > Körperlich > Am Boden > Gegner mind. 3m weg
-            .add_ranges("K72")
-            // Feld Verteidigung > Körperlich > Special
-            .add_ranges("K73")
-            // Felder Verteidigung Sozial
-            .add_ranges("U68:AC68")
-            // Felder Verteidigung Mental
-            .add_ranges("U71:AC71")
-            // Felder Angriffs-Pools
-            .add_ranges("A77:AA100")
-            // Felder Rituale
-            .add_ranges("A104:J118")
-            // Felder Items
-            .add_ranges("A122:Z131")
-            .doit()
-            .await;
+        let mut result = self.hub.spreadsheets().values_batch_get(sheet_key.as_str());
 
-        match result {
+        for entry in self.sheet_config.get_field_config_sorted() {
+            result = result.add_ranges(&entry.range);
+        }
+
+        let response = result.doit().await;
+
+        match response {
             Ok(my_result) => Ok(my_result.1.value_ranges.unwrap()),
             Err(..) => Err(StatusCode::NOT_FOUND),
         }

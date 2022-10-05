@@ -1,5 +1,6 @@
 mod api_key_client;
 mod character_db;
+mod config;
 
 use crate::{
     api_key_client::ApiKeyClient, character_db::player_character_client::PlayerCharacterClient,
@@ -61,7 +62,7 @@ async fn character_data(
 
     let service_account_info = env::var("SERVICE_ACCOUNT_INFORMATION").unwrap_or_default();
 
-    let player_character_client = match PlayerCharacterClient::new(service_account_info).await {
+    let mut player_character_client = match PlayerCharacterClient::new(service_account_info).await {
         Ok(client) => client,
         Err(error_code) => return (error_code, Json(None)),
     };
