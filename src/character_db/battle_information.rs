@@ -6,7 +6,7 @@ use super::{
 use serde::{Deserialize, Serialize};
 
 /// BattleInformation Struct
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct BattleInformation {
     pub base: BattleBaseInformation,
     pub defense: BattleDefenseInformation,

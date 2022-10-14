@@ -57,16 +57,19 @@ range = "AB8"
 name = "AttributKörperlicheFoki"
 position = 11
 range = "D9:D11"
+range_length = 3
 
 [[sheet_field]]
 name = "AttributSozialeFoki"
 position = 12
 range = "N9:N11"
+range_length=3
 
 [[sheet_field]]
 name = "AttributMentaleFoki"
 position = 13
 range = "X9:X11"
+range_length=3
 
 [[sheet_field]]
 name = "SkillAkademischesWissen"
@@ -272,16 +275,19 @@ range = "K29:S34"
 name = "Techniken"
 position = 54
 range = "U29:U37"
+range_length = 9
 
 [[sheet_field]]
 name = "InClanAhnenkräfte"
 position = 55
 range = "A36:A37"
+range_length = 2
 
 [[sheet_field]]
 name = "OutOfClanAhnenkräfte"
 position = 56
 range = "K36:K37"
+range_length = 2
 
 [[sheet_field]]
 name = "MoralvorstellungName"
@@ -304,9 +310,17 @@ position = 60
 range = "A44:H55"
 
 [[sheet_field]]
+name = "MeritsFlawsName"
+position = 60
+range = "A45:A55"
+range_length = 10
+exclude_on_read = true
+
+[[sheet_field]]
 name = "Backgrounds"
 position = 61
 range = "K41:T55"
+range_length = 14
 
 [[sheet_field]]
 name = "ErfahrungspunkteStartpunkte"
@@ -402,8 +416,11 @@ range = "A77:AA100"
 name = "Rituale"
 position = 80
 range = "A104:J118"
+range_length = 14
 
 [[sheet_field]]
 name = "Items"
 position = 81
 range = "A122:Z131"
+range_length = 9
+

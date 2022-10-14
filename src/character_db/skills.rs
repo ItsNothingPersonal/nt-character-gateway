@@ -1,8 +1,8 @@
-use super::skill::Skill;
+use super::skill::{Skill, SkillUpdateInput};
 use serde::{Deserialize, Serialize};
 
 /// Skills Struct
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Skills {
     pub academics: Skill,
     pub athletics: Skill,
@@ -33,4 +33,38 @@ pub struct Skills {
     pub streetwise: Skill,
     pub subterfuge: Skill,
     pub survival: Skill,
+}
+
+/// Struct for Updating the list of skills
+#[derive(Serialize, Deserialize, Debug)]
+pub struct SkillsUpdateInput {
+    pub academics: Option<SkillUpdateInput>,
+    pub athletics: Option<SkillUpdateInput>,
+    pub animal_ken: Option<SkillUpdateInput>,
+    pub awareness: Option<SkillUpdateInput>,
+    pub brawl: Option<SkillUpdateInput>,
+    pub computer: Option<SkillUpdateInput>,
+    pub craft_a: Option<SkillUpdateInput>,
+    pub craft_b: Option<SkillUpdateInput>,
+    pub dodge: Option<SkillUpdateInput>,
+    pub drive: Option<SkillUpdateInput>,
+    pub empathy: Option<SkillUpdateInput>,
+    pub firearms: Option<SkillUpdateInput>,
+    pub intimidation: Option<SkillUpdateInput>,
+    pub investigation: Option<SkillUpdateInput>,
+    pub leadership: Option<SkillUpdateInput>,
+    pub linguistics: Option<SkillUpdateInput>,
+    pub lore: Option<SkillUpdateInput>,
+    pub medicine: Option<SkillUpdateInput>,
+    pub melee: Option<SkillUpdateInput>,
+    pub occult: Option<SkillUpdateInput>,
+    pub performance_a: Option<SkillUpdateInput>,
+    pub performance_b: Option<SkillUpdateInput>,
+    pub security: Option<SkillUpdateInput>,
+    pub science_a: Option<SkillUpdateInput>,
+    pub science_b: Option<SkillUpdateInput>,
+    pub stealth: Option<SkillUpdateInput>,
+    pub streetwise: Option<SkillUpdateInput>,
+    pub subterfuge: Option<SkillUpdateInput>,
+    pub survival: Option<SkillUpdateInput>,
 }

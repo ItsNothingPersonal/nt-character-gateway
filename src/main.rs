@@ -6,7 +6,7 @@ use crate::{
     api_key_client::ApiKeyClient, character_db::player_character_client::PlayerCharacterClient,
 };
 use axum::{extract::Path, http::StatusCode, routing::get, Json, Router};
-use character_db::player_character::PlayerCharacter;
+use character_db::player_character::{PlayerCharacter, PlayerCharacterUpdateInput};
 use std::{env, net::SocketAddr};
 
 #[tokio::main]
@@ -18,7 +18,10 @@ async fn main() {
     let app = Router::new()
         // `GET /` goes to `root`
         .route("/", get(root))
-        .route("/character/:sheet_key", get(character_data));
+        .route(
+            "/character/:sheet_key",
+            get(character_data).put(character_update),
+        );
 
     // run our app
     let host = env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
@@ -76,4 +79,39 @@ async fn character_data(
 
     // returning the result
     (StatusCode::OK, Json(Some(retrieved_character)))
+}
+
+async fn character_update(
+    Path(api_key): Path<String>,
+    Json(payload): Json<PlayerCharacterUpdateInput>,
+) -> (StatusCode, Json<Option<i32>>) {
+    tracing::debug!("API Key: {:?}", api_key);
+    tracing::debug!("Payload: {:?}", payload);
+
+    let db_connection_string =
+        env::var("DB_CONNECTION_STRING").unwrap_or_else(|_| "redis://127.0.0.1/".to_string());
+    let mut api_key_client = ApiKeyClient::new(db_connection_string);
+
+    let sheet_key = match api_key_client.map_key(&api_key) {
+        Ok(key) => key,
+        Err(err) => return (err, Json(None)),
+    };
+
+    let service_account_info = env::var("SERVICE_ACCOUNT_INFORMATION").unwrap_or_default();
+
+    let player_character_client = match PlayerCharacterClient::new(service_account_info).await {
+        Ok(client) => client,
+        Err(error_code) => return (error_code, Json(None)),
+    };
+
+    let updated_cells = match player_character_client.write_data(sheet_key, payload).await {
+        Ok(data) => data,
+        Err(error_code) => return (error_code, Json(None)),
+    };
+
+    if let Err(err_code) = api_key_client.remove_cached_data(&api_key) {
+        return (err_code, Json(None));
+    }
+
+    (StatusCode::OK, Json(Some(updated_cells)))
 }

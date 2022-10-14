@@ -4,6 +4,7 @@ use super::{
     field_config::FieldConfig, field_config_entry::FieldConfigEntry, field_name::FieldName,
 };
 
+#[derive(Clone)]
 pub struct ConfigClient {
     pub settings: FieldConfig,
 }

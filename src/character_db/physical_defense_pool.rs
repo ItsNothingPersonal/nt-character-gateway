@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// PhysicalDefensePool Struct
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PhysicalDefensePool {
     pub base_value: u8,
     pub base_value_with_celerity: u8,

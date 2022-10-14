@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Item Struct
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Item {
     pub name: String,
     pub trait_1: String,

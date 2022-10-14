@@ -55,4 +55,21 @@ impl ApiKeyClient {
                 .set_ex::<String, String, usize>(cache_key, serialized_character, ttl);
         tracing::debug!("cache write result: {:?}", result);
     }
+
+    pub fn remove_cached_data(&mut self, api_key: &String) -> Result<bool, StatusCode> {
+        let cache_key = format!("cache-{}", api_key);
+
+        let result = self.connection.del(cache_key);
+
+        match result {
+            Ok(value) => {
+                tracing::trace!("Cache cleaned successfully");
+                Ok(value)
+            }
+            Err(error) => {
+                tracing::error!("Cache cleaning faield: {:?}", error);
+                Err(StatusCode::BAD_REQUEST)
+            }
+        }
+    }
 }

@@ -64,6 +64,7 @@ pub enum FieldName {
     MoralvorstellungWert,
     FraktionName,
     MeritsFlaws,
+    MeritsFlawsName,
     Backgrounds,
     ErfahrungspunkteStartpunkte,
     ErfahrungspunkteGesamtAusgegeben,
