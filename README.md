@@ -58,4 +58,4 @@ docker run -d -p 80:3000 -e HOST='0.0.0.0' -e PORT='3000' -e RUST_LOG='debug' -e
 
 ## License
 
-[![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://choosealicense.com/licenses/mit/)
+[![MIT License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://choosealicense.com/licenses/mit/)
